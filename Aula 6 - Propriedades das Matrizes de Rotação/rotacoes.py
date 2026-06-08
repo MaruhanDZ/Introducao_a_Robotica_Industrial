@@ -52,12 +52,23 @@ point = np.array([[3,3,3]])
 # ============================================================
 
 faces_idx = [
-    [0,1,2,3],
-    [4,5,6,7],
-    [0,1,5,4],
-    [2,3,7,6],
-    [0,3,7,4],
-    [1,2,6,5]
+    [0,1,2,3],  # topo
+    [4,5,6,7],  # base
+    [0,1,5,4],  # frente
+    [2,3,7,6],  # trás
+    [0,3,7,4],  # direita
+    [1,2,6,5]   # esquerda
+]
+
+# Cores das faces
+
+face_colors = [
+    'red',
+    'blue',
+    'green',
+    'yellow',
+    'orange',
+    'purple'
 ]
 
 # ============================================================
@@ -77,9 +88,11 @@ ax_x = plt.axes([0.25, 0.20, 0.65, 0.03])
 ax_y = plt.axes([0.25, 0.15, 0.65, 0.03])
 ax_z = plt.axes([0.25, 0.10, 0.65, 0.03])
 
-slider_x = Slider(ax_x, 'Theta X', -180, 180, valinit=0)
-slider_y = Slider(ax_y, 'Theta Y', -180, 180, valinit=0)
-slider_z = Slider(ax_z, 'Theta Z', -180, 180, valinit=0)
+# Agora de 0° até 360°
+
+slider_x = Slider(ax_x, 'Theta X', 0, 360, valinit=0)
+slider_y = Slider(ax_y, 'Theta Y', 0, 360, valinit=0)
+slider_z = Slider(ax_z, 'Theta Z', 0, 360, valinit=0)
 
 # ============================================================
 # Seleção do objeto
@@ -93,10 +106,21 @@ radio = RadioButtons(
 )
 
 # ============================================================
+# Configuração fixa da câmera
+# ============================================================
+
+CAM_ELEV = 25
+CAM_AZIM = 35
+
+# ============================================================
 # Atualização
 # ============================================================
 
 def update(val):
+
+    # Salva câmera atual
+    elev = ax.elev
+    azim = ax.azim
 
     ax.clear()
 
@@ -129,7 +153,8 @@ def update(val):
             rotated[:,0],
             rotated[:,1],
             rotated[:,2],
-            s=100
+            s=100,
+            color='red'
         )
 
     # --------------------------------------------------------
@@ -145,8 +170,10 @@ def update(val):
 
         cube = Poly3DCollection(
             faces,
-            alpha=0.3,
-            edgecolor='black'
+            facecolors=face_colors,
+            edgecolor='black',
+            linewidths=1.5,
+            alpha=0.6
         )
 
         ax.add_collection3d(cube)
@@ -156,10 +183,32 @@ def update(val):
     # --------------------------------------------------------
 
     lim = 15
+
     ax.set_box_aspect([1,1,1])
-    ax.plot([-lim, lim], [0,0], [0,0])
-    ax.plot([0,0], [-lim, lim], [0,0])
-    ax.plot([0,0], [0,0], [-lim, lim])
+
+    # Eixo X
+    ax.plot(
+        [-lim, lim],
+        [0,0],
+        [0,0],
+        linewidth=2
+    )
+
+    # Eixo Y
+    ax.plot(
+        [0,0],
+        [-lim, lim],
+        [0,0],
+        linewidth=2
+    )
+
+    # Eixo Z
+    ax.plot(
+        [0,0],
+        [0,0],
+        [-lim, lim],
+        linewidth=2
+    )
 
     ax.set_xlim([-lim, lim])
     ax.set_ylim([-lim, lim])
@@ -170,6 +219,12 @@ def update(val):
     ax.set_zlabel('Z')
 
     ax.grid(True)
+
+    # Mantém a câmera fixa
+    if elev == 30 and azim == -60:
+        ax.view_init(elev=CAM_ELEV, azim=CAM_AZIM)
+    else:
+        ax.view_init(elev=elev, azim=azim)
 
     plt.draw()
 
@@ -182,6 +237,9 @@ slider_y.on_changed(update)
 slider_z.on_changed(update)
 
 radio.on_clicked(update)
+
+# Inicializa câmera
+ax.view_init(elev=CAM_ELEV, azim=CAM_AZIM)
 
 update(None)
 
